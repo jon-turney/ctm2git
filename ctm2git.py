@@ -9,6 +9,8 @@ import sys
 import urllib.request
 import xtarfile
 
+import calm.version
+
 CACHE_DIR = '/tmp/ctm2git/cache'
 ARCHIVE_EXTS = [
     '.tar.gz', '.tgz',
@@ -61,14 +63,15 @@ def ctm_to_sourcelist(args):
 
         # parse it
         with open(filename, errors='ignore') as f:
-            v, s = parse_setup_ini(f.read(), args.package[0])
-            if v:
-                # because we circas are ordered newest to oldest, this records
-                # the oldest circa to contain the version
-                sources[v] = circa + '/' + s
+            s = parse_setup_ini(f.read(), args.package[0])
+            for v in s:
+                # because we circas are ordered newest to oldest, data from the
+                # oldest circa to contain a version overwrites that from all
+                # newer circas
+                sources[v] = circa + '/' + s[v]
 
     # show versions and sources
-    for v in reversed(sources):
+    for v in sorted(sources.keys(), key=calm.version.SetupVersion):
         print(v, sources[v], DEFAULT_AUTHOR)
 
 
@@ -148,6 +151,8 @@ def sourcelist_to_repo(args):
 
 
 def parse_setup_ini(contents, package):
+    parsed = {}
+
     for l in contents.splitlines():
         if l.startswith('@'):
             p = l[2:]
@@ -155,12 +160,12 @@ def parse_setup_ini(contents, package):
             v = l[9:]
         elif l.startswith('source:'):
             s = l[8:].split()[0]
-            # this will stop on the source: line for the first version: line
-            # (the 'current' version) for the specified package
+            # this extracts the URL from the source: line for all version: lines
+            # for the specified package
             if p == package:
-                return v, s
+                parsed[v] = s
 
-    return None, None
+    return parsed
 
 
 parser = argparse.ArgumentParser(description='Make a git repository from CTM package history')
