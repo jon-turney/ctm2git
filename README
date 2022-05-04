@@ -1,0 +1,12 @@
+ctm2git
+-------
+
+Synthesize a packaging repo from the history of source packages in CTM.
+
+In an empty directory:
+- Run 'ctm2git PACKAGENAME >tempfile'
+- Edit tempfile to replace 'unknown <unknown@unknown.invalid>' with maintainer details for each version
+- run 'ctm2git PACKAGENAME --sourcelist tempfile' to create git repo
+
+Note that on the first run this will download all historic setup.ini files from
+CTM, which may take a while. These files are cached for subsequent runs.

@@ -12,12 +12,13 @@ import xtarfile
 import calm.version
 
 CACHE_DIR = '/tmp/ctm2git/cache'
-ARCHIVE_EXTS = [
+REMOVE_EXTS = [
     '.tar.gz', '.tgz',
     '.tar.bz2', '.tbz',
     '.tar.lzma',
     '.tar.xz', '.txz',
     '.tar.zst',
+    '.sig',
 ]
 DEFAULT_AUTHOR = 'unknown <unknown@unknown.invalid>'
 
@@ -76,6 +77,8 @@ def ctm_to_sourcelist(args):
 
 
 def sourcelist_to_repo(args):
+    package = args.package[0]
+
     # read from provided filename
     sources = {}
     with open(args.sourcelist[0]) as f:
@@ -130,11 +133,15 @@ def sourcelist_to_repo(args):
         # unpack it
         subprocess.check_call(['tar', '-x', extra_args, '-f', filename])
 
-        # remove upstream tarball(s)
+        # remove upstream tarball(s), .sig files
         with os.scandir('.') as entries:
             for entry in entries:
-                if any(entry.path.endswith(ext) for ext in ARCHIVE_EXTS):
+                if any(entry.path.endswith(ext) for ext in REMOVE_EXTS):
                     os.remove(entry.path)
+
+        # if the unarchived upstream source is included in a g-b-s package
+        if os.path.isdir(package + '-' + v):
+            shutil.rmtree(package + '-' + v)
 
         # create a git commit
         subprocess.check_call(['git', 'add', '--all', '-f', '.'])
@@ -146,7 +153,7 @@ def sourcelist_to_repo(args):
         env['GIT_COMMITTER_EMAIL'] = re.search(r'<(.*)>', author).group(1)
         env['GIT_COMMITTER_DATE'] = date
 
-        message = '%s %s\n\nctm2git-circa: %s' % (args.package[0], v, circa)
+        message = '%s %s\n\nctm2git-circa: %s' % (package, v, circa)
         subprocess.check_call(['git', 'commit', '--author', author, '--date=%s' % date, '-m', message], env=env)
 
 
