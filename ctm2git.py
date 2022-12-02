@@ -145,7 +145,7 @@ def sourcelist_to_repo(args):
 
         # create a git commit
         subprocess.check_call(['git', 'add', '--all', '-f', '.'])
-        circa = re.search(r'circa/([\d/]*)/', url).group(1)
+        circa = re.search(r'circa/(?:64bit/|)([\d/]*)/', url).group(1)
         date = circa + ' UTC'
 
         env = os.environ.copy()
