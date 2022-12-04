@@ -143,6 +143,11 @@ def sourcelist_to_repo(args):
         if os.path.isdir(package + '-' + v):
             shutil.rmtree(package + '-' + v)
 
+        # avoid trying to make empty commits for very old source packages with
+        # which we can do nothing useful
+        if len(list(os.scandir('.'))) <= 1:
+            continue
+
         # create a git commit
         subprocess.check_call(['git', 'add', '--all', '-f', '.'])
         circa = re.search(r'circa/(?:64bit/|)([\d/]*)/', url).group(1)
