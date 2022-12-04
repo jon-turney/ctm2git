@@ -100,7 +100,7 @@ def sourcelist_to_repo(args):
         print("Working directory isn't empty", file=sys.stderr)
         exit(1)
 
-    subprocess.check_call(['git', 'init'])
+    subprocess.check_call(['git', 'init', '--initial-branch=master'])
 
     # for each unique source...
     for v in sources:
