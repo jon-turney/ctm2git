@@ -146,7 +146,8 @@ def sourcelist_to_repo(args):
         # avoid trying to make empty commits for very old source packages with
         # which we can do nothing useful
         if len(list(os.scandir('.'))) <= 1:
-            continue
+            if not args.allow_empty:
+                continue
 
         # create a git commit
         subprocess.check_call(['git', 'add', '--all', '-f', '.'])
@@ -159,7 +160,10 @@ def sourcelist_to_repo(args):
         env['GIT_COMMITTER_DATE'] = date
 
         message = '%s %s\n\nctm2git-circa: %s' % (package, v, circa)
-        subprocess.check_call(['git', 'commit', '--author', author, '--date=%s' % date, '-m', message], env=env)
+        cmd = ['git', 'commit', '--author', author, '--date=%s' % date, '-m', message]
+        if args.allow_empty:
+            cmd.append('--allow-empty')
+        subprocess.check_call(cmd, env=env)
 
 
 def parse_setup_ini(contents, package):
@@ -184,6 +188,8 @@ parser = argparse.ArgumentParser(description='Make a git repository from CTM pac
 parser.add_argument('package', action='store', nargs=1)
 parser.add_argument('--arch', action='store', required=True, choices=['x86', 'x86_64'])
 parser.add_argument('--sourcelist', action='store', nargs=1, help='sourcelist from a previous run')
+parser.add_argument('--allow-empty', action='store', help='allow empty commits')
+
 (args) = parser.parse_args()
 if not args.sourcelist:
     ctm_to_sourcelist(args)
