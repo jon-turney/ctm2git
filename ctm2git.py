@@ -69,7 +69,8 @@ def ctm_to_sourcelist(args):
                 # because we circas are ordered newest to oldest, data from the
                 # oldest circa to contain a version overwrites that from all
                 # newer circas
-                sources[v] = circa + '/' + s[v]
+                if (args.since is None) or (calm.version.SetupVersion(v) > calm.version.SetupVersion(args.since[0])):
+                    sources[v] = circa + '/' + s[v]
 
     # show versions and sources
     for v in sorted(sources.keys(), key=calm.version.SetupVersion):
@@ -90,17 +91,18 @@ def sourcelist_to_repo(args):
                 exit(1)
             sources[v] = source(url, author)
 
-    # abort if working directory is already a git repo
-    if os.path.exists('.git'):
-        print('Working directory is already a git repo', file=sys.stderr)
-        exit(1)
+    if not args.since:
+        # abort if working directory is already a git repo
+        if os.path.exists('.git'):
+            print('Working directory is already a git repo', file=sys.stderr)
+            exit(1)
 
-    # abort if working directory isn't empty
-    if len(os.listdir('.')) != 0:
-        print("Working directory isn't empty", file=sys.stderr)
-        exit(1)
+        # abort if working directory isn't empty
+        if len(os.listdir('.')) != 0:
+            print("Working directory isn't empty", file=sys.stderr)
+            exit(1)
 
-    subprocess.check_call(['git', 'init', '--initial-branch=master'])
+        subprocess.check_call(['git', 'init', '--initial-branch=master'])
 
     # for each unique source...
     for v in sources:
@@ -189,6 +191,7 @@ parser.add_argument('package', action='store', nargs=1)
 parser.add_argument('--arch', action='store', required=True, choices=['x86', 'x86_64'])
 parser.add_argument('--sourcelist', action='store', nargs=1, help='sourcelist from a previous run')
 parser.add_argument('--allow-empty', action='store', help='allow empty commits')
+parser.add_argument('--since', nargs=1, action='store', help='append versions after SINCE')
 
 (args) = parser.parse_args()
 if not args.sourcelist:
