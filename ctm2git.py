@@ -11,6 +11,13 @@ import xtarfile
 
 import calm.version
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(iterable):
+        return iterable
+
+
 CACHE_DIR = '/tmp/ctm2git/cache'
 REMOVE_EXTS = [
     '.tar.gz', '.tgz',
@@ -58,7 +65,7 @@ def ctm_to_sourcelist(args):
 
     # for each setup.ini URL, fetch it and parse details for selected package
     sources = {}
-    for u in urls:
+    for u in tqdm(urls):
         circa = re.search('^(.*)/setup.ini$', u).group(1)
         filename = url_retrieve_cached(u)
 
