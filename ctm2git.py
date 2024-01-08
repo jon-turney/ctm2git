@@ -25,6 +25,7 @@ REMOVE_EXTS = [
     '.tar.lzma',
     '.tar.xz', '.txz',
     '.tar.zst',
+    '.cpio.gz',
     '.sig',
 ]
 DEFAULT_AUTHOR = 'unknown <unknown@unknown.invalid>'
@@ -142,15 +143,26 @@ def sourcelist_to_repo(args):
         # unpack it
         subprocess.check_call(['tar', '-x', extra_args, '-f', filename])
 
-        # remove upstream tarball(s), .sig files
+        # remove upstream archives and .sig files
         with os.scandir('.') as entries:
             for entry in entries:
                 if any(entry.path.endswith(ext) for ext in REMOVE_EXTS):
                     os.remove(entry.path)
 
         # if the unarchived upstream source is included in a g-b-s package
-        if os.path.isdir(package + '-' + v):
-            shutil.rmtree(package + '-' + v)
+        for gbs_src_dir in [(package + '-' + v), (package + '-' + v.rsplit('-')[0])]:
+            if os.path.isdir(gbs_src_dir):
+                mknetrel = os.path.join(gbs_src_dir, package + '.mknetrel')
+                if os.path.exists(mknetrel):
+                    os.rename(mknetrel, os.path.join(package + '.mknetrel'))
+
+                cygwin_patches = os.path.join(gbs_src_dir, 'CYGWIN-PATCHES')
+                if os.path.exists(cygwin_patches):
+                    with os.scandir(cygwin_patches) as patches:
+                        for patch in patches:
+                            os.rename(patch, os.path.basename(patch))
+
+                shutil.rmtree(gbs_src_dir)
 
         # avoid trying to make empty commits for very old source packages with
         # which we can do nothing useful
