@@ -156,11 +156,16 @@ def sourcelist_to_repo(args):
         # unpack it
         subprocess.check_call(['tar', '-x', extra_args, '-f', filename])
 
-        # remove upstream archives and .sig files
+
         with os.scandir('.') as entries:
             for entry in entries:
+                # remove upstream archives and .sig files
                 if any(entry.path.endswith(ext) for ext in REMOVE_EXTS):
                     os.remove(entry.path)
+
+                # fix broken filemode
+                elif (os.stat(entry.path).st_mode & 0o777) == 0:
+                    os.chmod(entry.path, 0o664)
 
         # if the unarchived upstream source is included in a g-b-s package
         for gbs_src_dir in [(package + '-' + v), (package + '-' + v.rsplit('-')[0])]:
