@@ -99,6 +99,10 @@ def sourcelist_to_repo(args):
                 exit(1)
             sources[v] = source(url, author)
 
+    if args.create:
+        os.mkdir(package + '.git')
+        os.chdir(package + '.git')
+
     if not args.since:
         # abort if working directory is already a git repo
         if os.path.exists('.git'):
@@ -208,6 +212,7 @@ def parse_setup_ini(contents, package):
 parser = argparse.ArgumentParser(description='Make a git repository from CTM package history')
 parser.add_argument('package', action='store', nargs=1)
 parser.add_argument('--arch', action='store', required=True, choices=['x86', 'x86_64'])
+parser.add_argument('--create', action='store_true', help='create git repository')
 parser.add_argument('--sourcelist', action='store', nargs=1, help='sourcelist from a previous run')
 parser.add_argument('--allow-empty', action='store_true', help='allow empty commits')
 parser.add_argument('--since', nargs=1, action='store', help='append versions after SINCE')
