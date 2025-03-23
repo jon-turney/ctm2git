@@ -51,6 +51,8 @@ class source:
 
 
 def ctm_to_sourcelist(args):
+    package = args.package[0]
+
     if args.arch == 'x86':
         index_url = "http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/index.html"
     else:
@@ -72,7 +74,7 @@ def ctm_to_sourcelist(args):
 
         # parse it
         with open(filename, errors='ignore') as f:
-            s = parse_setup_ini(f.read(), args.package[0])
+            s = parse_setup_ini(f.read(), package)
             for v in s:
                 # because we circas are ordered newest to oldest, data from the
                 # oldest circa to contain a version overwrites that from all
@@ -83,6 +85,13 @@ def ctm_to_sourcelist(args):
     # show versions and sources
     for v in sorted(sources.keys(), key=calm.version.SetupVersion):
         print(v, sources[v], DEFAULT_AUTHOR)
+
+    if sys.stdout.isatty():
+        sourcelist_fn = package + '.lst'
+        with open(sourcelist_fn, mode='w') as f:
+            for v in sorted(sources.keys(), key=calm.version.SetupVersion):
+                print(v, sources[v], DEFAULT_AUTHOR, file=f)
+        print('written to %s' % sourcelist_fn)
 
 
 def sourcelist_to_repo(args):
@@ -210,7 +219,7 @@ def parse_setup_ini(contents, package):
 
 
 parser = argparse.ArgumentParser(description='Make a git repository from CTM package history')
-parser.add_argument('package', action='store', nargs=1)
+parser.add_argument('package', action='store', nargs=1, help='package name')
 parser.add_argument('--arch', action='store', required=True, choices=['x86', 'x86_64'])
 parser.add_argument('--create', action='store_true', help='create git repository')
 parser.add_argument('--sourcelist', action='store', nargs=1, help='sourcelist from a previous run')
