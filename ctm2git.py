@@ -125,6 +125,8 @@ def sourcelist_to_repo(args):
             exit(1)
 
         subprocess.check_call(['git', 'init', '--initial-branch=master'])
+        subprocess.check_call(['git', 'remote', 'add', 'origin', 'https://cygwin.com/git/cygwin-packages/%s' % package])
+        subprocess.check_call(['git', 'remote', 'set-url', '--push', 'origin', 'cygwin@cygwin.com:/git/cygwin-packages/%s' % package])
 
     # for each unique source...
     for v in sources:
