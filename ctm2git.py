@@ -27,6 +27,7 @@ REMOVE_EXTS = [
     '.tar.zst',
     '.cpio.gz',
     '.sig',
+    '.zip',
 ]
 DEFAULT_AUTHOR = 'unknown <unknown@unknown.invalid>'
 
