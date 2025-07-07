@@ -1,12 +1,18 @@
 ctm2git
--------
+=======
 
 Synthesize a packaging repo from the history of source packages in CTM.
 
-In an empty directory:
-- Run 'ctm2git PACKAGENAME >tempfile'
-- Edit tempfile to replace 'unknown <unknown@unknown.invalid>' with maintainer details for each version
-- run 'ctm2git PACKAGENAME --sourcelist tempfile' to create git repo
+* Run 'ctm2git PACKAGENAME' to create PACKAGENAME.lst
+* Edit PACKAGENAME.lst, replacing 'unknown <unknown@unknown.invalid>' with maintainer details for each version
+* Run 'ctm2git PACKAGENAME --create' to create git repo in PACAKAGENAME.git/
 
 Note that on the first run this will download all historic setup.ini files from
 CTM, which may take a while. These files are cached for subsequent runs.
+
+
+Advanced usage
+--------------
+
+* You can stich together x86 and x86_64 histories by combining their PACKAGENAME.lst files
+* If the git repo already exists but is missing recent history, you can use '--since VERSION-RELEASE'

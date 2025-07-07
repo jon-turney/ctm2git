@@ -95,11 +95,15 @@ def ctm_to_sourcelist(args):
         with open(sourcelist_fn, mode='w') as f:
             for v in sorted(sources.keys(), key=calm.version.SetupVersion):
                 print(v, sources[v], DEFAULT_AUTHOR, file=f)
-        print('written to %s' % sourcelist_fn)
+        print('Written to %s' % sourcelist_fn)
 
 
 def sourcelist_to_repo(args):
     package = args.package[0]
+
+    if not args.sourcelist:
+        args.sourcelist =  [args.package[0] + '.lst']
+        print('Reading from %s' % args.sourcelist[0])
 
     # read from provided filename
     sources = {}
@@ -114,7 +118,7 @@ def sourcelist_to_repo(args):
 
     if args.create:
         os.mkdir(package + '.git')
-        os.chdir(package + '.git')
+    os.chdir(package + '.git')
 
     if not args.since:
         # abort if working directory is already a git repo
@@ -133,6 +137,9 @@ def sourcelist_to_repo(args):
 
     # for each unique source...
     for v in sources:
+        if args.since and (calm.version.SetupVersion(v) <= calm.version.SetupVersion(args.since[0])):
+            continue
+
         # fetch it
         url = sources[v].url
         author = sources[v].author
@@ -229,15 +236,16 @@ def parse_setup_ini(contents, package):
 
 
 parser = argparse.ArgumentParser(description='Make a git repository from CTM package history')
-parser.add_argument('package', action='store', nargs=1, help='package name')
-parser.add_argument('--arch', action='store', required=True, choices=['x86', 'x86_64'])
+parser.add_argument('package', action='store', nargs=1, metavar='PACKAGE', help='package name')
+parser.add_argument('--arch', action='store', required=True, choices=['x86', 'x86_64'], help='architecture')
 parser.add_argument('--create', action='store_true', help='create git repository')
 parser.add_argument('--sourcelist', action='store', nargs=1, help='sourcelist from a previous run')
 parser.add_argument('--allow-empty', action='store_true', help='allow empty commits')
-parser.add_argument('--since', nargs=1, action='store', help='append versions after SINCE')
+parser.add_argument('--since', nargs=1, action='store', help='append versions greater than SINCE')
 
 (args) = parser.parse_args()
-if not args.sourcelist:
+
+if not (args.create or args.since):
     ctm_to_sourcelist(args)
 else:
     sourcelist_to_repo(args)
