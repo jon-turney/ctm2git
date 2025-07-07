@@ -36,8 +36,11 @@ def url_retrieve_cached(u):
     cache_fn = os.path.join(CACHE_DIR, u.replace('http://', '').replace(os.path.sep, '_'))
 
     if not os.path.isfile(cache_fn):
-        (filename, headers) = urllib.request.urlretrieve(u, cache_fn)
         print('fetching %s' % u, file=sys.stderr)
+        try:
+            (filename, headers) = urllib.request.urlretrieve(u, cache_fn)
+        except urllib.error.HTTPError as e:
+            sys.exit('error %s fetching %s' % (e, u), file=sys.stderr)
     else:
         filename = cache_fn
         # print('%s from cache' % filename, file=sys.stderr)
@@ -77,7 +80,7 @@ def ctm_to_sourcelist(args):
         with open(filename, errors='ignore') as f:
             s = parse_setup_ini(f.read(), package)
             for v in s:
-                # because we circas are ordered newest to oldest, data from the
+                # because circas are ordered newest to oldest, data from the
                 # oldest circa to contain a version overwrites that from all
                 # newer circas
                 if (args.since is None) or (calm.version.SetupVersion(v) > calm.version.SetupVersion(args.since[0])):
@@ -158,7 +161,6 @@ def sourcelist_to_repo(args):
 
         # unpack it
         subprocess.check_call(['tar', '-x', extra_args, '-f', filename])
-
 
         with os.scandir('.') as entries:
             for entry in entries:
