@@ -28,6 +28,7 @@ REMOVE_EXTS = [
     '.cpio.gz',
     '.sig', '.asc',
     '.zip',
+    '.gem',
 ]
 DEFAULT_AUTHOR = 'unknown <unknown@unknown.invalid>'
 
