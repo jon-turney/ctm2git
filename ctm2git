@@ -25,6 +25,7 @@ REMOVE_EXTS = [
     '.tar.lzma',
     '.tar.xz', '.txz',
     '.tar.zst',
+    '.tar.Z',
     '.cpio.gz',
     '.sig', '.asc',
     '.zip',
